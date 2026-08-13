@@ -1,13 +1,8 @@
---[[
-	CHRONOS by clovis500c
-	Type definitions.
-]]--
+local module = {}
 
---|| Types ||--
--- A snapshot of every tracked player at a given time
 export type State = {
 	Time: number,
-	Positions: { [number]: CFrame } -- keyed by UserId
+	Positions: { [number]: CFrame }
 }
 
-return {}
+return module

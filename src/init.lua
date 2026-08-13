@@ -1,5 +1,5 @@
 --[[
-	CHRONOS by clovis500c
+	Chronos by clovis500c
 ]]--
 
 --|| Services ||--
@@ -80,12 +80,12 @@ end
 function Chronos:IsTimeValid(ClientTime: number): boolean
 	local Delay = self:GetTime() - ClientTime
 
-	return Delay >= 0 and Delay <= Config.MaxRewind
+	return Delay >= 0 and Delay <= Config.MaxChronos
 end
 
 -- Return the delay between the client time and the server time within a safe range
 function Chronos:GetSafeDelay(ClientTime: number): number
-	return math.clamp(self:GetTime() - ClientTime, 0, Config.MaxRewind)
+	return math.clamp(self:GetTime() - ClientTime, 0, Config.MaxChronos)
 end
 
 -- Returns the world state at the given time

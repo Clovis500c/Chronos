@@ -128,11 +128,11 @@ Convenience wrapper around `GetState` for a single player.
 
 ### `Chronos:IsTimeValid(ClientTime: number): boolean`
 
-Whether a client timestamp is plausible — not in the future, and not further back than `MaxRewind`. Use this to reject suspicious timestamps outright.
+Whether a client timestamp is plausible — not in the future, and not further back than `MaxChronos`. Use this to reject suspicious timestamps outright.
 
 ### `Chronos:GetSafeDelay(ClientTime: number): number`
 
-The delay between the client timestamp and now, clamped to `[0, MaxRewind]`. Use this instead of `IsTimeValid` if you'd rather clamp than reject — a player on 400ms ping isn't cheating, they're just lagging, and rejecting all their shots makes the game unplayable for them.
+The delay between the client timestamp and now, clamped to `[0, MaxChronos]`. Use this instead of `IsTimeValid` if you'd rather clamp than reject — a player on 400ms ping isn't cheating, they're just lagging, and rejecting all their shots makes the game unplayable for them.
 
 ### `Chronos:ValidateHit(Shooter, Origin, Direction, ClientTime, Filter?): (Player?, RaycastResult?)`
 
@@ -157,12 +157,12 @@ Edit `Config.lua`:
 | Setting | Default | Description |
 |---|---|---|
 | `HistoryDuration` | `1` | Seconds of position history kept |
-| `MaxRewind` | `0.3` | Maximum rewind allowed, in seconds |
+| `MaxChronos` | `0.3` | Maximum rewind allowed, in seconds |
 | `HitboxSize` | `Vector3.new(4, 5, 1)` | Size of the reconstructed hitbox |
 | `MaxDistance` | `500` | Maximum ray length in studs |
 | `Debug` | `false` | Print lifecycle messages |
 
-`MaxRewind` is your anti-cheat guard. Without it, a client could send a timestamp from five seconds ago and hit players who were standing there back then.
+`MaxChronos` is your anti-cheat guard. Without it, a client could send a timestamp from five seconds ago and hit players who were standing there back then.
 
 ---
 

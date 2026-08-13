@@ -1,27 +1,8 @@
---[[
-	CHRONOS by clovis500c
-	Tunable settings.
-]]--
-
---|| Config ||--
-local Config = {
-	-- Seconds of position history kept
-	HistoryDuration = 1,
-
-	-- Snapshots recorded per second
-	SampleRate = 30,
-
-	-- Maximum rewind allowed in seconds, also the anti-cheat clamp
-	MaxRewind = 0.3,
-
-	-- Size of the reconstructed hitbox
-	HitboxSize = Vector3.new(4, 5, 1),
-
-	-- Maximum ray length in studs
-	MaxDistance = 500,
-
-	-- Print lifecycle messages
-	Debug = false
+return {
+	HistoryDuration = 1, -- History of player positions kept in seconds
+	SampleRate = 30, -- Number of states recorded per second
+	MaxChronos = 0.3, -- Maximum time (in seconds) players can Chronos
+	HitboxSize = Vector3.new(4, 5, 1), -- Size of the reconstructed hitbox
+	MaxDistance = 500, -- Maximum ray length in studs
+	Debug = false -- Enable debug prints
 }
-
-return table.freeze(Config)
