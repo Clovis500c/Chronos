@@ -4,9 +4,15 @@ description: Server-side lag compensation for Roblox, in pure Luau.
 icon: Rocket
 ---
 
-The server records player positions over time, rewinds to the moment a shot was fired, and validates the hit against that past state — so a player with high ping who aims correctly actually hits.
+Chronos is a server-side lag compensation module for Roblox. It records every player's position several times per second and can reconstruct the world state at any past moment, so a shot can be validated against what the shooter actually saw.
 
 Three files, no dependencies, server only.
+
+## What it solves
+
+Your screen shows other players where they *were* a few frames ago — the information took time to reach you. You aim perfectly and fire, but on the server they have already moved and the ray passes through empty space. The shot was correct and it still did not register.
+
+Chronos rewinds its position log to the instant the shot was fired, rebuilds where everyone actually was, and judges the ray against that. A player on 200ms who aims correctly hits.
 
 ## Install
 
