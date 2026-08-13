@@ -4,7 +4,7 @@ description: Every method Chronos exposes.
 icon: Code
 ---
 
-Chronos returns a single ready-made instance — `require` it and call methods on it directly, no `.new()` needed.
+Chronos returns a single ready-made instance. `require` it and call methods on it directly, no `.new()` needed.
 
 ```lua
 type State = {
@@ -21,7 +21,7 @@ type State = {
 Chronos:Start(): ()
 ```
 
-Starts recording. Server only — warns and returns if called on the client. Safe to call twice, the second call is ignored.
+Starts recording. Server only. Warns and returns if called on the client. Safe to call twice, the second call is ignored.
 
 ### Stop
 
@@ -65,7 +65,7 @@ local Where = Chronos:GetPositionAt(Player, Chronos:GetTime() - 0.5)
 
 ## Guarding client timestamps
 
-A client tells you when it fired. That number comes from a machine you don't control, so it is never trusted — pick one of these two guards.
+A client tells you when it fired. That number comes from a machine you don't control, so it is never trusted. Pick one of these two guards.
 
 <Tabs items={['Reject', 'Clamp']}>
 <Tab value="Reject">
@@ -74,7 +74,7 @@ A client tells you when it fired. That number comes from a machine you don't con
 Chronos:IsTimeValid(ClientTime: number): boolean
 ```
 
-`true` if the timestamp is plausible: not in the future, and not further back than `MaxChronos`. Strict — anything outside the window is thrown away.
+`true` if the timestamp is plausible: not in the future, and not further back than `MaxChronos`. Strict: anything outside the window is thrown away.
 
 ```lua
 if not Chronos:IsTimeValid(ClientTime) then
@@ -89,7 +89,7 @@ end
 Chronos:GetSafeDelay(ClientTime: number): number
 ```
 
-The delay between the timestamp and now, clamped to `[0, MaxChronos]`. Nothing is refused — an impossible timestamp is simply pulled back into the allowed window.
+The delay between the timestamp and now, clamped to `[0, MaxChronos]`. Nothing is refused. An impossible timestamp gets pulled back into the allowed window.
 
 ```lua
 local Delay = Chronos:GetSafeDelay(ClientTime)
@@ -100,7 +100,7 @@ local State = Chronos:GetState(Chronos:GetTime() - Delay)
 </Tabs>
 
 <Callout title="Which one?">
-A player on 400ms ping isn't cheating, they're just lagging. `IsTimeValid` rejects every shot they take, which makes the game unplayable for them. `GetSafeDelay` gives them the best rewind the window allows. Reject if you'd rather be strict, clamp if you'd rather be playable.
+A player on 400ms ping isn't cheating, they're just lagging, and `IsTimeValid` rejects every shot they take. `GetSafeDelay` gives them the best rewind the window allows instead. Use it unless you have a reason to be strict.
 </Callout>
 
 ## Validating a shot
@@ -151,7 +151,7 @@ Casts a ray against the world as it was when the shooter fired. The shooter is a
 
 Returns the player hit and the raycast result, or `nil, nil` if nothing was hit.
 
-`Filter` is where your game rules go — teams, alive state, spawn protection. Chronos has no opinion on who counts as a target:
+`Filter` is where your game rules go: teams, alive state, spawn protection. Chronos has no opinion on who counts as a target:
 
 ```lua
 local Hit, Result = Chronos:ValidateHit(Player, Origin, Direction, ClientTime, function(Target)

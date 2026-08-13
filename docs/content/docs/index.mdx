@@ -10,7 +10,7 @@ Three files, no dependencies, server only.
 
 ## What it solves
 
-Your screen shows other players where they *were* a few frames ago — the information took time to reach you. You aim perfectly and fire, but on the server they have already moved and the ray passes through empty space. The shot was correct and it still did not register.
+Your screen shows other players where they *were* a few frames ago, because the information took time to reach you. You aim perfectly and fire, but on the server they have already moved and the ray passes through empty space. The shot was correct and it still did not register.
 
 Chronos rewinds its position log to the instant the shot was fired, rebuilds where everyone actually was, and judges the ray against that. A player on 200ms who aims correctly hits.
 
@@ -26,7 +26,7 @@ Download `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/re
   </Folder>
 </Files>
 
-The module returns a ready-made instance — no `.new()`.
+The module returns a ready-made instance, so there is no `.new()`.
 
 ```lua
 local Chronos = require(game.ServerStorage.Chronos)
@@ -90,10 +90,10 @@ end)
 </Tabs>
 
 <Callout type="warn" title="Use the right clock">
-The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides — `tick()`, `os.time()` and `os.clock()` measure local machine time and will produce wrong results.
+The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides. `tick()`, `os.time()` and `os.clock()` measure local machine time and will produce wrong results.
 </Callout>
 
-`IsTimeValid` rejects anything beyond `MaxChronos` (0.3s by default), which also caps what a spoofed timestamp can reach. If you'd rather clamp than reject laggy players, use `GetSafeDelay` — see the [API reference](/docs/api).
+`IsTimeValid` rejects anything beyond `MaxChronos` (0.3s by default), which also caps what a spoofed timestamp can reach. If you'd rather clamp than reject laggy players, use `GetSafeDelay` instead. See the [API reference](/docs/api).
 
 ## Next
 

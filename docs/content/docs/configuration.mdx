@@ -55,16 +55,16 @@ return {
 ## MaxChronos is your anti-cheat
 
 <Callout type="warn">
-Without this clamp, a client could send a timestamp from five seconds ago and hit players who were standing there back then. Keep it tight — `0.3` already covers a 300ms ping, which is a bad connection.
+Without this clamp, a client could send a timestamp from five seconds ago and hit players who were standing there back then. Keep it tight. `0.3` already covers a 300ms ping, which is a bad connection.
 </Callout>
 
-Raising it makes the game more forgiving for laggy players and more exploitable at the same time. There is no setting that gives you one without the other; you're choosing where on that line your game sits.
+Raising it makes the game more forgiving for laggy players and more exploitable at the same time. No value avoids both, so pick where on that line your game sits.
 
 ## HistoryDuration must exceed MaxChronos
 
 `HistoryDuration` is how far back the log reaches. `MaxChronos` is how far back a request may ask. If the second is larger than the first, you're allowing requests for states you've already thrown away.
 
-The defaults leave a comfortable margin — 1 second of history against 0.3 seconds of reach. Keep roughly that ratio if you change either.
+The defaults leave a comfortable margin, 1 second of history against 0.3 seconds of reach. Keep roughly that ratio if you change either.
 
 ## SampleRate
 
@@ -75,13 +75,13 @@ The defaults leave a comfortable margin — 1 second of history against 0.3 seco
 
 Because your recording rate would follow the server's framerate. Healthy server at 60 FPS, 60 snapshots per second. Busy server at 25 FPS, 25 snapshots per second.
 
-The resolution of your rewind would silently degrade exactly when the server is most loaded — which is during a big firefight, precisely when players need the compensation most.
+The resolution of your rewind would silently degrade exactly when the server is most loaded, during a big firefight, which is when players need the compensation most.
 
 </Accordion>
 
 <Accordion title="Why not sample faster than 30Hz?">
 
-Roblox only replicates character positions a limited number of times per second. Sampling faster than that records the same position twice rather than new information — you pay CPU and memory for duplicates.
+Roblox only replicates character positions a limited number of times per second. Sampling faster than that records the same position twice rather than new information, so you pay CPU and memory for duplicates.
 
 And `GetState` already interpolates between snapshots, so the gaps are filled anyway. Doubling the rate does not double the accuracy.
 
@@ -91,11 +91,11 @@ And `GetState` already interpolates between snapshots, so the gaps are filled an
 
 Measure it. From a server script, compare the `HumanoidRootPart` position each `Heartbeat` and count how often it actually changes versus how many frames elapsed.
 
-Run it through **Test → Clients and Servers**, not a solo playtest — in solo, server and client are the same machine and you'll measure your own framerate instead of a replication rate.
+Run it through **Test → Clients and Servers**, not a solo playtest. In solo, server and client are the same machine and you'll measure your own framerate instead of a replication rate.
 
 </Accordion>
 </Accordions>
 
 ## Debug
 
-Turns on two prints, one on `Start` and one on `Stop`. Nothing else — it won't flood your output during play.
+Turns on two prints, one on `Start` and one on `Stop`. Nothing else, so it won't flood your output during play.

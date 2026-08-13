@@ -44,7 +44,7 @@ export default function HomePage() {
 
       <p className="mt-3">
         Your screen shows other players where they <em>were</em> a few frames ago. You aim perfectly
-        and fire — on the server they have already moved, and the ray passes through empty space.
+        and fire, but on the server they have already moved and the ray passes through empty space.
         The shot was correct and it still did not register.
       </p>
 
@@ -81,7 +81,7 @@ local Hit = Chronos:ValidateHit(Player, Origin, Direction, ClientTime)`}</code>
         </a>
         . MIT.{' '}
         <Link href="/docs" className="text-fd-foreground underline underline-offset-4">
-          Read the docs →
+          Read the docs
         </Link>
       </p>
     </main>

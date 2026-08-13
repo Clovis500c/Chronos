@@ -11,7 +11,7 @@ Three steps: the server keeps a log, finds the right moment in it, then tests th
 
 ## Recording
 
-`SampleRate` times per second, the server stores a snapshot — a timestamp plus every player's `HumanoidRootPart` CFrame, keyed by UserId. Snapshots older than `HistoryDuration` are dropped from the front of the array.
+`SampleRate` times per second, the server stores a snapshot: a timestamp plus every player's `HumanoidRootPart` CFrame, keyed by UserId. Snapshots older than `HistoryDuration` are dropped from the front of the array.
 
 The sampling is driven by `Heartbeat`, but not *tied* to it. An accumulator collects elapsed time and only records once a full interval has passed:
 
@@ -32,7 +32,7 @@ self._Connections["Heartbeat"] = RunService.Heartbeat:Connect(function(DeltaTime
 end)
 ```
 
-Recording on every frame instead would tie the history resolution to the server's framerate — 60 snapshots per second on a healthy server, 25 when it stutters. The rewind would get coarser exactly when the server is busiest, which is when a shooter needs it most.
+Recording on every frame instead would tie the history resolution to the server's framerate. 60 snapshots per second on a healthy server, 25 when it stutters. The rewind would get coarser exactly when the server is busiest, which is when a shooter needs it most.
 
 <Callout title="Why modulo instead of resetting to zero">
 If a frame runs long, the leftover time is carried into the next interval rather than thrown away, so the rate doesn't slowly drift below its target. It also prevents a single monstrous frame from firing six snapshots in a row with near-identical timestamps.
@@ -50,7 +50,7 @@ A requested timestamp almost never lands exactly on a snapshot. `GetState` finds
 alpha = (requested - previous) / (next - previous)
 ```
 
-That gives a value from 0 to 1 for how far along the interval the requested time falls. `CFrame:Lerp` then produces the position — handling rotation as well as translation.
+That gives a value from 0 to 1 for how far along the interval the requested time falls. `CFrame:Lerp` then produces the position, handling rotation as well as translation.
 
 At 30Hz, snapshots are 33ms apart and a running character covers about half a stud between them. Picking the nearest snapshot instead of interpolating would introduce a quarter-stud error on average, for free.
 
@@ -62,31 +62,13 @@ At 30Hz, snapshots are 33ms apart and a running character covers about half a st
 
 `ValidateHit` reconstructs the past state, spawns invisible anchored parts at those positions, and raycasts with `RaycastFilterType.Include` whitelisting only those parts.
 
-The real characters are never touched, so the live world can't interfere with the result — a player standing in front of you *now* can't block a shot that was clear *then*. The parts are destroyed immediately after the cast.
+The real characters are never touched, so the live world can't interfere with the result. A player standing in front of you *now* can't block a shot that was clear *then*. The parts are destroyed immediately after the cast.
 
 </Step>
 </Steps>
 
-## The whole path of a shot
-
-<Files>
-  <Folder name="1. Client fires" defaultOpen>
-    <File name="workspace:GetServerTimeNow() → the timestamp" />
-    <File name="Camera ray → Origin and Direction" />
-  </Folder>
-  <Folder name="2. Server receives" defaultOpen>
-    <File name="IsTimeValid / GetSafeDelay → is this time plausible?" />
-    <File name="GetState → rebuild that instant, interpolated" />
-  </Folder>
-  <Folder name="3. Server judges" defaultOpen>
-    <File name="Spawn hitboxes at rewound positions" />
-    <File name="Raycast with Include filter" />
-    <File name="Destroy hitboxes, return the victim" />
-  </Folder>
-</Files>
-
 ## Prior art
 
-This is not a Roblox invention. Server-side lag compensation — a fixed-rate position history, rewinding to a client timestamp, interpolating between snapshots — is the standard approach in networked shooters, described publicly by Valve for the Source engine and used in some form by essentially every competitive FPS since.
+This is not a Roblox invention. A fixed-rate position history, rewinding to a client timestamp, interpolating between snapshots: this is the standard approach in networked shooters. Valve described it publicly for the Source engine, and competitive FPS games have used some form of it ever since.
 
 Chronos implements that scheme in the smallest form that still works on Roblox. See [Limitations](/docs/limitations) for the Roblox modules that go further.

@@ -4,7 +4,7 @@ Server-side lag compensation for Roblox. The server records player positions ove
 
 Pure Luau. No dependencies, server only.
 
-**[Documentation →](https://clovis500c.github.io/Chronos/)**
+**[Documentation](https://clovis500c.github.io/Chronos/)**
 
 ---
 
@@ -17,7 +17,7 @@ local Chronos = require(game.ServerStorage.Chronos)
 Chronos:Start()
 ```
 
-Everything else — API, settings, internals, limitations — is in [the docs](https://clovis500c.github.io/Chronos/docs).
+Everything else (API, settings, internals, limitations) is in [the docs](https://clovis500c.github.io/Chronos/docs).
 
 ---
 
@@ -25,11 +25,11 @@ Everything else — API, settings, internals, limitations — is in [the docs](h
 
 Chronos wasn't the first to do this on Roblox. If you need something more mature:
 
-- [RollbackHitbox](https://devforum.roblox.com/t/rollbackhitbox-server-authoritative-lag-compensation-for-roblox-shooters-open-source/4553295) — OBB intersection math instead of spawning parts
-- [roblox-lag-compensation](https://github.com/RegularTetragon/roblox-lag-compensation) — roblox-ts, tracks every character part
+- [RollbackHitbox](https://devforum.roblox.com/t/rollbackhitbox-server-authoritative-lag-compensation-for-roblox-shooters-open-source/4553295) uses OBB intersection math instead of spawning parts
+- [roblox-lag-compensation](https://github.com/RegularTetragon/roblox-lag-compensation) is written in roblox-ts and tracks every character part
 
-Chronos was built to understand the technique from the ground up, and stays deliberately small and dependency-free.
+Chronos was built to understand the technique from the ground up. It stays small on purpose.
 
 ---
 
-MIT — built by [clovis500c](https://github.com/clovis500c)
+MIT. Built by [clovis500c](https://github.com/clovis500c).

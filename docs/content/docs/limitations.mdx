@@ -4,23 +4,23 @@ description: What Chronos does not do, and prior art that does more.
 icon: TriangleAlert
 ---
 
-Chronos is deliberately small. Here is exactly where that shows, so you can decide before you build on it.
+Chronos is small on purpose. Here is where that costs you something, so you can decide before building on it.
 
 <Callout type="info">
-None of these are bugs, and none are planned fixes. They're the boundaries of a module built to make the technique understandable.
+None of these are bugs, and none are on a roadmap. They are where the module stops.
 </Callout>
 
 ## One hitbox per player
 
 Only the `HumanoidRootPart` is tracked, so there's no headshot detection and no limb-accurate hits. `HitboxSize` is a rough box approximating a character.
 
-If your game needs damage zones, you need per-part tracking — see the prior art below.
+If your game needs damage zones, you need per-part tracking. See the prior art below.
 
 ## Parts are created per shot
 
-`ValidateHit` spawns an Instance per candidate target and destroys them right after the cast. Fine at normal fire rates, wasteful at high volume — a minigun with ten players in range creates and destroys ten parts per shot.
+`ValidateHit` spawns an Instance per candidate target and destroys them right after the cast. Fine at normal fire rates, wasteful at high volume. A minigun with ten players in range creates and destroys ten parts per shot.
 
-An OBB intersection test would do the same job in pure math with no Instances at all. That's the right fix, and it's out of scope here.
+An OBB intersection test would do the same job in pure math with no Instances at all. That is the proper fix, and it is out of scope here.
 
 ## NPCs aren't tracked
 
@@ -28,14 +28,14 @@ Only `Players` are recorded. Anything else in your game is invisible to the rewi
 
 ## The offset stacks
 
-Roblox already interpolates replicated characters, so the position the server sees is itself slightly behind reality. Chronos rewinds from there — the compensation stacks on top of an offset it can't see or correct.
+Roblox already interpolates replicated characters, so the position the server sees is itself slightly behind reality. Chronos rewinds from there, so the compensation stacks on top of an offset it can't see or correct.
 
 ## Victims can be hit after taking cover
 
 On their own screen, a player ducks behind a wall and still takes the hit, because the server validated a shot against the past.
 
 <Callout type="warn" title="This one is not fixable">
-It's inherent to lag compensation. Either the shooter's aim is wrong, or the victim's cover is late — the two players don't share a present moment, so someone has to absorb the difference. Every competitive shooter makes this same tradeoff.
+It's inherent to lag compensation. The two players don't share a present moment, so someone has to absorb the difference: either the shooter's aim is wrong, or the victim's cover is late. Every competitive shooter makes this same tradeoff.
 </Callout>
 
 ## If you need more
@@ -53,4 +53,4 @@ It's inherent to lag compensation. Either the shooter's aim is wrong, or the vic
   />
 </Cards>
 
-Chronos was built to understand the technique from the ground up, and stays deliberately small and dependency-free.
+Chronos was built to understand the technique from the ground up, and it stays small on purpose.
