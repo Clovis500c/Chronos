@@ -1,0 +1,22 @@
+# Roblox place files
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+*.rbxm
+*.rbxmx
+
+# Wally
+Packages/
+ServerPackages/
+DevPackages/
+wally.lock
+
+# Tooling
+.vscode/
+sourcemap.json
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

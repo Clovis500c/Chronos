@@ -1,0 +1,11 @@
+[package]
+name = "clovis500c/chronos"
+description = "Server-side lag compensation for Roblox. Pure Luau, no dependencies."
+version = "0.1.0"
+license = "MIT"
+authors = ["clovis500c"]
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "server"
+include = ["src", "wally.toml", "README.md", "LICENSE"]
+
+[dependencies]
