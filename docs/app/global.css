@@ -1,32 +1,26 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/black.css';
 @import 'fumadocs-ui/css/preset.css';
 
-/* Chronos palette — violet accent, cool neutrals. Time, rewinding. */
+/* Neutral greys, one warm accent. No tinted backgrounds, no gradients. */
 :root {
-  --color-fd-primary: hsl(258, 85%, 55%);
-  --color-fd-ring: hsl(258, 85%, 55%);
-  --color-fd-background: hsl(260, 20%, 99%);
-  --color-fd-card: hsl(260, 20%, 99%);
-  --color-fd-popover: hsl(260, 20%, 99%);
-  --color-fd-accent: hsl(258, 40%, 95%);
-  --color-fd-accent-foreground: hsl(258, 60%, 30%);
-  --color-fd-border: hsl(258, 20%, 90%);
-  --color-fd-muted: hsl(258, 25%, 96%);
-  --color-fd-muted-foreground: hsl(258, 10%, 45%);
+  --color-fd-primary: hsl(38, 62%, 38%);
+  --color-fd-primary-foreground: hsl(40, 30%, 97%);
+  --color-fd-ring: hsl(38, 62%, 38%);
 }
 
 .dark {
-  --color-fd-primary: hsl(258, 100%, 78%);
-  --color-fd-ring: hsl(258, 100%, 78%);
-  --color-fd-background: hsl(258, 22%, 7%);
-  --color-fd-card: hsl(258, 20%, 9%);
-  --color-fd-popover: hsl(258, 20%, 10%);
-  --color-fd-accent: hsl(258, 25%, 16%);
-  --color-fd-accent-foreground: hsl(258, 60%, 90%);
-  --color-fd-border: hsl(258, 20%, 18%);
-  --color-fd-muted: hsl(258, 22%, 13%);
-  --color-fd-muted-foreground: hsl(258, 15%, 62%);
+  --color-fd-background: hsl(30, 4%, 4%);
+  --color-fd-card: hsl(30, 4%, 6%);
+  --color-fd-popover: hsl(30, 4%, 7%);
+  --color-fd-primary: hsl(43, 62%, 74%);
+  --color-fd-primary-foreground: hsl(30, 6%, 8%);
+  --color-fd-ring: hsl(43, 62%, 74%);
+  --color-fd-border: hsl(30, 4%, 14%);
+  --color-fd-accent: hsl(30, 4%, 12%);
+  --color-fd-accent-foreground: hsl(40, 15%, 92%);
+  --color-fd-muted: hsl(30, 4%, 9%);
+  --color-fd-muted-foreground: hsl(35, 6%, 58%);
 }
 
 html {
@@ -36,30 +30,4 @@ html {
 html > body[data-scroll-locked] {
   margin-right: 0px !important;
   --removed-body-scroll-bar-size: 0px !important;
-}
-
-/* Landing page helpers */
-.chronos-gradient-text {
-  background: linear-gradient(
-    100deg,
-    var(--color-fd-primary) 0%,
-    hsl(200, 90%, 55%) 50%,
-    var(--color-fd-primary) 100%
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
-}
-
-.chronos-grid {
-  background-image:
-    linear-gradient(to right, var(--color-fd-border) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-fd-border) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 20%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 20%, transparent 100%);
-}
-
-.chronos-glow {
-  background: radial-gradient(ellipse 50% 40% at 50% 0%, color-mix(in srgb, var(--color-fd-primary) 22%, transparent), transparent 75%);
 }
