@@ -4,6 +4,8 @@ Server-side lag compensation for Roblox. The server records player positions ove
 
 Pure Luau. No dependencies, server only.
 
+**[Documentation →](https://clovis500c.github.io/Chronos/)**
+
 ---
 
 ## Why
@@ -61,7 +63,7 @@ ShootRemote:FireServer(workspace:GetServerTimeNow(), Ray.Origin, Ray.Direction)
 
 The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides — `tick()`, `os.time()` and `os.clock()` measure local machine time and will produce wrong results.
 
-Settings live in `Config.lua`. Every method is commented in the source.
+Full API reference, settings and internals: **[the docs](https://clovis500c.github.io/Chronos/docs)**.
 
 ---
 
