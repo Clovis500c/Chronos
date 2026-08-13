@@ -8,72 +8,16 @@ Pure Luau. No dependencies, server only.
 
 ---
 
-## Why
-
-Your screen shows other players where they *were* a few frames ago — the information took time to reach you. So you aim perfectly and fire, but on the server they've already moved and your ray hits empty space.
-
-Chronos rewinds the world to the instant the shooter actually pulled the trigger, so a correctly aimed shot registers even on high ping.
-
----
-
 ## Install
 
-Grab `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/releases) and drag it into `ServerStorage`, or copy `src/` manually.
-
----
-
-## Usage
-
-**Server**
+Download `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/releases) and drag it into `ServerStorage`, or copy `src/` manually.
 
 ```lua
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerStorage = game:GetService("ServerStorage")
-
-local Chronos = require(ServerStorage.Chronos)
-local ShootRemote = ReplicatedStorage.Shoot
-
+local Chronos = require(game.ServerStorage.Chronos)
 Chronos:Start()
-
-ShootRemote.OnServerEvent:Connect(function(Player, ClientTime, Origin, Direction)
-	if not Chronos:IsTimeValid(ClientTime) then
-		return
-	end
-
-	local Hit = Chronos:ValidateHit(Player, Origin, Direction, ClientTime)
-
-	if Hit then
-		local Humanoid = Hit.Character and Hit.Character:FindFirstChild("Humanoid")
-		if Humanoid then
-			Humanoid:TakeDamage(25)
-		end
-	end
-end)
 ```
 
-**Client**
-
-```lua
-local Camera = workspace.CurrentCamera
-local Mouse = UserInputService:GetMouseLocation()
-local Ray = Camera:ViewportPointToRay(Mouse.X, Mouse.Y)
-
-ShootRemote:FireServer(workspace:GetServerTimeNow(), Ray.Origin, Ray.Direction)
-```
-
-The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides — `tick()`, `os.time()` and `os.clock()` measure local machine time and will produce wrong results.
-
-Full API reference, settings and internals: **[the docs](https://clovis500c.github.io/Chronos/docs)**.
-
----
-
-## Limitations
-
-- **One hitbox per player.** Only the `HumanoidRootPart` is tracked, so no headshots or limb-accurate hits.
-- **Parts are created per shot.** Fine for normal fire rates, not for high volumes. An OBB intersection test would avoid this.
-- **NPCs aren't tracked.** Only `Players`.
-- **Roblox already interpolates replicated characters**, so the rewind stacks on top of an existing offset.
-- **The victim can be hit after taking cover** on their own screen. Inherent to lag compensation — every competitive shooter makes the same tradeoff.
+Everything else — API, settings, internals, limitations — is in [the docs](https://clovis500c.github.io/Chronos/docs).
 
 ---
 

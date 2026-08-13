@@ -1,41 +1,78 @@
 ---
 title: Getting started
 description: Server-side lag compensation for Roblox, in pure Luau.
+icon: Rocket
 ---
 
 Chronos records player positions over time, rewinds to the moment a shot was fired, and validates the hit against that past state.
 
 Pure Luau. No dependencies, server only.
 
-## Why you need it
+## The problem
 
-Your screen shows other players where they *were* a few frames ago — the information took time to reach you. So you aim perfectly and fire, but on the server they've already moved and your ray hits empty space.
+Your screen always lies. What you see of another player is where they were a few frames ago, because the information took time to reach you.
 
-Without compensation, a correctly aimed shot simply doesn't register. That's the "I hit them but nothing happened" feeling in badly networked games.
+<Tabs items={['On your screen', 'On the server']}>
+  <Tab value="On your screen">
+    You aim perfectly at their head, you fire, it's a clean hit. Everything about the moment says you connected.
+  </Tab>
+  <Tab value="On the server">
+    At that same instant they've already moved a meter away. Your ray goes through empty space and nothing registers.
+  </Tab>
+</Tabs>
 
-Chronos rewinds the world to the instant the shooter actually pulled the trigger, so the shot is judged against what the shooter really saw.
+That's the "I hit them but nothing happened" feeling in badly networked games. Chronos closes the gap by judging the shot against the world the shooter actually saw.
 
 ## Install
 
-Grab `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/releases) and drag it into `ServerStorage`, or copy `src/` manually:
+<Steps>
+<Step>
 
-```
-Chronos/
-├── init.lua      -- main module
-├── Config.lua    -- settings
-└── Types.lua     -- type definitions
-```
+### Get the module
+
+Download `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/releases) and drag it into Studio, or copy `src/` by hand.
+
+<Files>
+  <Folder name="Chronos" defaultOpen>
+    <File name="init.lua" />
+    <File name="Config.lua" />
+    <File name="Types.lua" />
+  </Folder>
+</Files>
+
+</Step>
+
+<Step>
+
+### Put it somewhere server-only
+
+`ServerStorage` or `ServerScriptService`. Chronos refuses to run on the client — it warns and returns.
+
+</Step>
+
+<Step>
+
+### Start recording
 
 ```lua
 local Chronos = require(game.ServerStorage.Chronos)
+
 Chronos:Start()
 ```
 
+That's it. The position log fills up from the next frame onward.
+
+</Step>
+</Steps>
+
 ## Quick start
 
-**Server**
+A complete round trip: the client sends when it fired, the server rewinds and applies damage.
 
-```lua
+<Tabs items={['Server', 'Client']}>
+<Tab value="Server">
+
+```lua title="ServerScriptService/Combat.server.lua"
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerStorage = game:GetService("ServerStorage")
 
@@ -60,9 +97,10 @@ ShootRemote.OnServerEvent:Connect(function(Player, ClientTime, Origin, Direction
 end)
 ```
 
-**Client**
+</Tab>
+<Tab value="Client">
 
-```lua
+```lua title="StarterPlayerScripts/Shooting.client.lua"
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
@@ -81,9 +119,40 @@ UserInputService.InputBegan:Connect(function(Input, Processed)
 end)
 ```
 
+</Tab>
+</Tabs>
+
 <Callout type="warn" title="Use the right clock">
 The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides. `tick()`, `os.time()` and `os.clock()` all measure local machine time and will produce wrong results.
 </Callout>
+
+## Common questions
+
+<Accordions type="single">
+<Accordion title="Do I need to call Chronos.new()?">
+
+No. The module returns a ready-made instance — `require` it and call methods directly. One recorder per server is what you want.
+
+</Accordion>
+
+<Accordion title="What happens if a player has 400ms ping?">
+
+`IsTimeValid` rejects their shot, because 400ms is beyond the default `MaxChronos` of 0.3s. If you'd rather not punish them for a bad connection, use `GetSafeDelay` instead — it clamps the rewind rather than refusing the shot. See the [API reference](/docs/api).
+
+</Accordion>
+
+<Accordion title="Does this work with NPCs?">
+
+Not as-is. Only `Players` are recorded. See [Limitations](/docs/limitations).
+
+</Accordion>
+
+<Accordion title="Can a cheater send a fake timestamp?">
+
+They can send anything, which is why the timestamp is never trusted. `MaxChronos` caps how far back any request can reach, so the worst a spoofed time gets is 0.3 seconds of rewind — the same window an honest laggy player gets.
+
+</Accordion>
+</Accordions>
 
 ## Next
 

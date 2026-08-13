@@ -1,11 +1,12 @@
 ---
 title: Configuration
 description: The six settings in Config.lua.
+icon: Settings
 ---
 
 Everything tunable lives in `Config.lua`:
 
-```lua
+```lua title="Chronos/Config.lua"
 return {
 	HistoryDuration = 1, -- History of player positions kept in seconds
 	SampleRate = 30, -- Number of states recorded per second
@@ -16,25 +17,85 @@ return {
 }
 ```
 
-| Setting | Default | Description |
-|---|---|---|
-| `HistoryDuration` | `1` | Seconds of position history kept |
-| `SampleRate` | `30` | Snapshots recorded per second |
-| `MaxChronos` | `0.3` | Maximum rewind allowed, in seconds |
-| `HitboxSize` | `Vector3.new(4, 5, 1)` | Size of the reconstructed hitbox |
-| `MaxDistance` | `500` | Maximum ray length in studs |
-| `Debug` | `false` | Print lifecycle messages |
+<TypeTable
+  type={{
+    HistoryDuration: {
+      type: 'number',
+      description: 'Seconds of position history kept before snapshots are dropped.',
+      default: '1',
+    },
+    SampleRate: {
+      type: 'number',
+      description: 'Snapshots recorded per second, independent of the server framerate.',
+      default: '30',
+    },
+    MaxChronos: {
+      type: 'number',
+      description: 'Maximum rewind allowed, in seconds. Doubles as the anti-cheat clamp.',
+      default: '0.3',
+    },
+    HitboxSize: {
+      type: 'Vector3',
+      description: 'Size of the invisible part spawned at each rewound position.',
+      default: 'Vector3.new(4, 5, 1)',
+    },
+    MaxDistance: {
+      type: 'number',
+      description: 'Maximum ray length in studs.',
+      default: '500',
+    },
+    Debug: {
+      type: 'boolean',
+      description: 'Print lifecycle messages on start and stop.',
+      default: 'false',
+    },
+  }}
+/>
 
 ## MaxChronos is your anti-cheat
 
 <Callout type="warn">
-Without this clamp, a client could send a timestamp from five seconds ago and hit players who were standing there back then. Keep it tight — 0.3s already covers a 300ms ping, which is a bad connection.
+Without this clamp, a client could send a timestamp from five seconds ago and hit players who were standing there back then. Keep it tight — `0.3` already covers a 300ms ping, which is a bad connection.
 </Callout>
 
-`HistoryDuration` should always be comfortably larger than `MaxChronos`. If you keep 1 second of history and allow 0.3s of rewind, you have plenty of margin. Setting `HistoryDuration` below `MaxChronos` means the state you want to rewind to has already been thrown away.
+Raising it makes the game more forgiving for laggy players and more exploitable at the same time. There is no setting that gives you one without the other; you're choosing where on that line your game sits.
+
+## HistoryDuration must exceed MaxChronos
+
+`HistoryDuration` is how far back the log reaches. `MaxChronos` is how far back a request may ask. If the second is larger than the first, you're allowing requests for states you've already thrown away.
+
+The defaults leave a comfortable margin — 1 second of history against 0.3 seconds of reach. Keep roughly that ratio if you change either.
 
 ## SampleRate
 
-30 snapshots per second means one every 33ms. Raising it costs memory and CPU on every frame for very little accuracy, because `GetState` already interpolates between snapshots — see [How it works](/docs/how-it-works).
+30 snapshots per second means one every 33ms.
 
-Roblox only replicates character positions a limited number of times per second. Sampling much faster than that records the same position twice rather than new information.
+<Accordions type="single">
+<Accordion title="Why not sample every frame?">
+
+Because your recording rate would follow the server's framerate. Healthy server at 60 FPS, 60 snapshots per second. Busy server at 25 FPS, 25 snapshots per second.
+
+The resolution of your rewind would silently degrade exactly when the server is most loaded — which is during a big firefight, precisely when players need the compensation most.
+
+</Accordion>
+
+<Accordion title="Why not sample faster than 30Hz?">
+
+Roblox only replicates character positions a limited number of times per second. Sampling faster than that records the same position twice rather than new information — you pay CPU and memory for duplicates.
+
+And `GetState` already interpolates between snapshots, so the gaps are filled anyway. Doubling the rate does not double the accuracy.
+
+</Accordion>
+
+<Accordion title="How do I know what rate Roblox actually replicates at?">
+
+Measure it. From a server script, compare the `HumanoidRootPart` position each `Heartbeat` and count how often it actually changes versus how many frames elapsed.
+
+Run it through **Test → Clients and Servers**, not a solo playtest — in solo, server and client are the same machine and you'll measure your own framerate instead of a replication rate.
+
+</Accordion>
+</Accordions>
+
+## Debug
+
+Turns on two prints, one on `Start` and one on `Stop`. Nothing else — it won't flood your output during play.

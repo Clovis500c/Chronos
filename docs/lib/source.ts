@@ -2,6 +2,8 @@ import { loader } from 'fumadocs-core/source';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
+import { createElement } from 'react';
+import * as icons from 'lucide-react';
 
 const docs = defineDocs({
   dir: 'content/docs',
@@ -21,6 +23,12 @@ export const source = loader({
   baseUrl: docsRoute,
   source: docs.toFumadocsSource(),
   plugins: [],
+  // `icon: Zap` in a page's frontmatter renders that lucide icon in the sidebar.
+  icon(name) {
+    if (!name) return;
+    const icon = icons[name as keyof typeof icons];
+    if (icon) return createElement(icon as never);
+  },
 });
 
 export function getPageImageUrl(page: (typeof source)['$inferPage']) {

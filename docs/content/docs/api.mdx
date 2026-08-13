@@ -1,11 +1,10 @@
 ---
 title: API reference
 description: Every method Chronos exposes.
+icon: Code
 ---
 
 Chronos returns a single ready-made instance — `require` it and call methods on it directly, no `.new()` needed.
-
-## Types
 
 ```lua
 type State = {
@@ -16,27 +15,47 @@ type State = {
 
 ## Lifecycle
 
-### `Chronos:Start()`
+### Start
+
+```lua
+Chronos:Start(): ()
+```
 
 Starts recording. Server only — warns and returns if called on the client. Safe to call twice, the second call is ignored.
 
-### `Chronos:Stop()`
+### Stop
+
+```lua
+Chronos:Stop(): ()
+```
 
 Stops recording, disconnects everything and clears the history.
 
 ## Reading the past
 
-### `Chronos:GetTime(): number`
+### GetTime
+
+```lua
+Chronos:GetTime(): number
+```
 
 Current server time. Shorthand for `workspace:GetServerTimeNow()`.
 
-### `Chronos:GetState(Time: number): State?`
+### GetState
 
-Returns the world state at the given time, interpolated between the two surrounding recorded states. Returns `nil` if no history exists yet.
+```lua
+Chronos:GetState(Time: number): State?
+```
 
-If the requested time is older than the oldest snapshot, you get the oldest one. If it's in the future, you get the newest.
+The world state at that time, interpolated between the two surrounding snapshots. Returns `nil` if no history exists yet.
 
-### `Chronos:GetPositionAt(Player: Player, Time: number): CFrame?`
+Out-of-range requests are clamped rather than refused: a time older than the oldest snapshot returns the oldest, a time in the future returns the newest.
+
+### GetPositionAt
+
+```lua
+Chronos:GetPositionAt(Player: Player, Time: number): CFrame?
+```
 
 Convenience wrapper around `GetState` for a single player.
 
@@ -46,42 +65,100 @@ local Where = Chronos:GetPositionAt(Player, Chronos:GetTime() - 0.5)
 
 ## Guarding client timestamps
 
-A client sends you the time it claims it fired at. That number is not trustworthy — it comes from a machine you don't control.
+A client tells you when it fired. That number comes from a machine you don't control, so it is never trusted — pick one of these two guards.
 
-### `Chronos:IsTimeValid(ClientTime: number): boolean`
+<Tabs items={['Reject', 'Clamp']}>
+<Tab value="Reject">
 
-Whether the timestamp is plausible: not in the future, and not further back than `MaxChronos`. Use it to reject suspicious timestamps outright.
+```lua
+Chronos:IsTimeValid(ClientTime: number): boolean
+```
 
-### `Chronos:GetSafeDelay(ClientTime: number): number`
+`true` if the timestamp is plausible: not in the future, and not further back than `MaxChronos`. Strict — anything outside the window is thrown away.
 
-The delay between the timestamp and now, clamped to `[0, MaxChronos]`.
+```lua
+if not Chronos:IsTimeValid(ClientTime) then
+	return
+end
+```
 
-<Callout title="Reject or clamp?">
-Use `GetSafeDelay` instead of `IsTimeValid` if you'd rather clamp than reject. A player on 400ms ping isn't cheating, they're just lagging — rejecting all their shots makes the game unplayable for them.
+</Tab>
+<Tab value="Clamp">
+
+```lua
+Chronos:GetSafeDelay(ClientTime: number): number
+```
+
+The delay between the timestamp and now, clamped to `[0, MaxChronos]`. Nothing is refused — an impossible timestamp is simply pulled back into the allowed window.
+
+```lua
+local Delay = Chronos:GetSafeDelay(ClientTime)
+local State = Chronos:GetState(Chronos:GetTime() - Delay)
+```
+
+</Tab>
+</Tabs>
+
+<Callout title="Which one?">
+A player on 400ms ping isn't cheating, they're just lagging. `IsTimeValid` rejects every shot they take, which makes the game unplayable for them. `GetSafeDelay` gives them the best rewind the window allows. Reject if you'd rather be strict, clamp if you'd rather be playable.
 </Callout>
 
 ## Validating a shot
 
-### `Chronos:ValidateHit(Shooter, Origin, Direction, ClientTime, Filter?)`
+### ValidateHit
 
-Returns `(Player?, RaycastResult?)`.
+```lua
+Chronos:ValidateHit(
+	Shooter: Player,
+	Origin: Vector3,
+	Direction: Vector3,
+	ClientTime: number,
+	Filter: ((Player) -> boolean)?
+): (Player?, RaycastResult?)
+```
 
 Casts a ray against the world as it was when the shooter fired. The shooter is always excluded from the targets.
 
-| Parameter | Type | |
-|---|---|---|
-| `Shooter` | `Player` | Who fired. Never hits themselves. |
-| `Origin` | `Vector3` | Ray start, from the client. |
-| `Direction` | `Vector3` | Ray direction. Normalised internally, then scaled to `MaxDistance`. |
-| `ClientTime` | `number` | The client's `GetServerTimeNow()` at the moment of the shot. |
-| `Filter` | `(Player) -> boolean` | Optional. Return `true` if that player should be hittable. |
+<TypeTable
+  type={{
+    Shooter: {
+      type: 'Player',
+      description: 'Who fired. Never hits themselves.',
+      required: true,
+    },
+    Origin: {
+      type: 'Vector3',
+      description: 'Ray start, sent by the client.',
+      required: true,
+    },
+    Direction: {
+      type: 'Vector3',
+      description: 'Ray direction. Normalised internally, then scaled to MaxDistance.',
+      required: true,
+    },
+    ClientTime: {
+      type: 'number',
+      description: "The client's GetServerTimeNow() at the moment of the shot.",
+      required: true,
+    },
+    Filter: {
+      type: '(Player) -> boolean',
+      description: 'Return true if that player should be hittable.',
+      default: 'nil',
+    },
+  }}
+/>
 
-`Filter` is where you put your game rules — teams, alive state, spawn protection. Chronos has no opinion on who counts as a target:
+Returns the player hit and the raycast result, or `nil, nil` if nothing was hit.
+
+`Filter` is where your game rules go — teams, alive state, spawn protection. Chronos has no opinion on who counts as a target:
 
 ```lua
-local Hit = Chronos:ValidateHit(Player, Origin, Direction, ClientTime, function(Target)
+local Hit, Result = Chronos:ValidateHit(Player, Origin, Direction, ClientTime, function(Target)
 	return Target.Team ~= Player.Team
 end)
 ```
 
-Returns the player hit and the raycast result, or `nil, nil` if nothing was hit.
+<Callout type="info">
+`Result` is a normal `RaycastResult`, so `Result.Position` and `Result.Normal` are there if you want to spawn an impact effect at the point of contact.
+</Callout>
