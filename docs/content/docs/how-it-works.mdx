@@ -1,0 +1,51 @@
+---
+title: How it works
+description: Recording, lookup, validation.
+---
+
+Three steps: the server keeps a log, finds the right moment in it, then tests the shot against that moment.
+
+## Recording
+
+`SampleRate` times per second, the server stores a snapshot — a timestamp plus every player's `HumanoidRootPart` CFrame, keyed by UserId. Snapshots older than `HistoryDuration` are dropped.
+
+The sampling is driven by `Heartbeat`, but not *tied* to it. An accumulator collects elapsed time and only records once a full interval has passed:
+
+```lua
+local Interval = 1 / Config.SampleRate
+
+self._Connections["Heartbeat"] = RunService.Heartbeat:Connect(function(DeltaTime: number)
+	self._Accumulator += DeltaTime
+
+	if self._Accumulator < Interval then
+		return
+	end
+
+	self._Accumulator %= Interval
+
+	self:SaveCurrentState()
+	self:RemoveStatesBefore(self:GetTime() - Config.HistoryDuration)
+end)
+```
+
+Recording on every frame instead would tie the history resolution to the server's framerate — 60 snapshots per second on a healthy server, 25 when it stutters. The rewind would silently get coarser exactly when the server is busiest, which is when a shooter needs it most.
+
+The modulo rather than a reset matters: if a frame runs long, the leftover time is carried into the next interval instead of being thrown away, so the rate doesn't slowly drift below its target.
+
+## Lookup
+
+A requested timestamp almost never lands exactly on a snapshot. `GetState` finds the two surrounding it and interpolates:
+
+```
+alpha = (requested - previous) / (next - previous)
+```
+
+That gives a value from 0 to 1 for how far along the interval the requested time falls. `CFrame:Lerp` then produces the position — handling rotation as well as translation.
+
+At 30Hz, snapshots are 33ms apart and a running character covers about half a stud between them. Picking the nearest snapshot instead of interpolating would introduce a quarter-stud error on average, for free.
+
+## Validation
+
+`ValidateHit` reconstructs the past state, spawns invisible anchored parts at those positions, and raycasts with `RaycastFilterType.Include` whitelisting only those parts.
+
+The real characters are never touched, so the live world can't interfere with the result — a player standing in front of you *now* can't block a shot that was clear *then*. The parts are destroyed immediately after the cast.

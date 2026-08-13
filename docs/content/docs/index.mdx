@@ -1,0 +1,95 @@
+---
+title: Getting started
+description: Server-side lag compensation for Roblox, in pure Luau.
+---
+
+Chronos records player positions over time, rewinds to the moment a shot was fired, and validates the hit against that past state.
+
+Pure Luau. No dependencies, server only.
+
+## Why you need it
+
+Your screen shows other players where they *were* a few frames ago — the information took time to reach you. So you aim perfectly and fire, but on the server they've already moved and your ray hits empty space.
+
+Without compensation, a correctly aimed shot simply doesn't register. That's the "I hit them but nothing happened" feeling in badly networked games.
+
+Chronos rewinds the world to the instant the shooter actually pulled the trigger, so the shot is judged against what the shooter really saw.
+
+## Install
+
+Grab `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/releases) and drag it into `ServerStorage`, or copy `src/` manually:
+
+```
+Chronos/
+├── init.lua      -- main module
+├── Config.lua    -- settings
+└── Types.lua     -- type definitions
+```
+
+```lua
+local Chronos = require(game.ServerStorage.Chronos)
+Chronos:Start()
+```
+
+## Quick start
+
+**Server**
+
+```lua
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerStorage = game:GetService("ServerStorage")
+
+local Chronos = require(ServerStorage.Chronos)
+local ShootRemote = ReplicatedStorage.Shoot
+
+Chronos:Start()
+
+ShootRemote.OnServerEvent:Connect(function(Player, ClientTime, Origin, Direction)
+	if not Chronos:IsTimeValid(ClientTime) then
+		return
+	end
+
+	local Hit = Chronos:ValidateHit(Player, Origin, Direction, ClientTime)
+
+	if Hit then
+		local Humanoid = Hit.Character and Hit.Character:FindFirstChild("Humanoid")
+		if Humanoid then
+			Humanoid:TakeDamage(25)
+		end
+	end
+end)
+```
+
+**Client**
+
+```lua
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+local ShootRemote = ReplicatedStorage.Shoot
+local Camera = workspace.CurrentCamera
+
+UserInputService.InputBegan:Connect(function(Input, Processed)
+	if Processed or Input.UserInputType ~= Enum.UserInputType.MouseButton1 then
+		return
+	end
+
+	local Mouse = UserInputService:GetMouseLocation()
+	local Ray = Camera:ViewportPointToRay(Mouse.X, Mouse.Y)
+
+	ShootRemote:FireServer(workspace:GetServerTimeNow(), Ray.Origin, Ray.Direction)
+end)
+```
+
+<Callout type="warn" title="Use the right clock">
+The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides. `tick()`, `os.time()` and `os.clock()` all measure local machine time and will produce wrong results.
+</Callout>
+
+## Next
+
+<Cards>
+  <Card title="API reference" href="/docs/api" description="Every method, what it returns, when to use it." />
+  <Card title="Configuration" href="/docs/configuration" description="The six settings and what they change." />
+  <Card title="How it works" href="/docs/how-it-works" description="Recording, lookup, validation." />
+  <Card title="Limitations" href="/docs/limitations" description="What Chronos does not do." />
+</Cards>

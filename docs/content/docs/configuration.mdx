@@ -1,0 +1,40 @@
+---
+title: Configuration
+description: The six settings in Config.lua.
+---
+
+Everything tunable lives in `Config.lua`:
+
+```lua
+return {
+	HistoryDuration = 1, -- History of player positions kept in seconds
+	SampleRate = 30, -- Number of states recorded per second
+	MaxChronos = 0.3, -- Maximum time (in seconds) players can Chronos
+	HitboxSize = Vector3.new(4, 5, 1), -- Size of the reconstructed hitbox
+	MaxDistance = 500, -- Maximum ray length in studs
+	Debug = false -- Enable debug prints
+}
+```
+
+| Setting | Default | Description |
+|---|---|---|
+| `HistoryDuration` | `1` | Seconds of position history kept |
+| `SampleRate` | `30` | Snapshots recorded per second |
+| `MaxChronos` | `0.3` | Maximum rewind allowed, in seconds |
+| `HitboxSize` | `Vector3.new(4, 5, 1)` | Size of the reconstructed hitbox |
+| `MaxDistance` | `500` | Maximum ray length in studs |
+| `Debug` | `false` | Print lifecycle messages |
+
+## MaxChronos is your anti-cheat
+
+<Callout type="warn">
+Without this clamp, a client could send a timestamp from five seconds ago and hit players who were standing there back then. Keep it tight — 0.3s already covers a 300ms ping, which is a bad connection.
+</Callout>
+
+`HistoryDuration` should always be comfortably larger than `MaxChronos`. If you keep 1 second of history and allow 0.3s of rewind, you have plenty of margin. Setting `HistoryDuration` below `MaxChronos` means the state you want to rewind to has already been thrown away.
+
+## SampleRate
+
+30 snapshots per second means one every 33ms. Raising it costs memory and CPU on every frame for very little accuracy, because `GetState` already interpolates between snapshots — see [How it works](/docs/how-it-works).
+
+Roblox only replicates character positions a limited number of times per second. Sampling much faster than that records the same position twice rather than new information.

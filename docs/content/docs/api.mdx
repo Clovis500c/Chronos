@@ -1,0 +1,87 @@
+---
+title: API reference
+description: Every method Chronos exposes.
+---
+
+Chronos returns a single ready-made instance — `require` it and call methods on it directly, no `.new()` needed.
+
+## Types
+
+```lua
+type State = {
+	Time: number,
+	Positions: { [number]: CFrame } -- keyed by UserId
+}
+```
+
+## Lifecycle
+
+### `Chronos:Start()`
+
+Starts recording. Server only — warns and returns if called on the client. Safe to call twice, the second call is ignored.
+
+### `Chronos:Stop()`
+
+Stops recording, disconnects everything and clears the history.
+
+## Reading the past
+
+### `Chronos:GetTime(): number`
+
+Current server time. Shorthand for `workspace:GetServerTimeNow()`.
+
+### `Chronos:GetState(Time: number): State?`
+
+Returns the world state at the given time, interpolated between the two surrounding recorded states. Returns `nil` if no history exists yet.
+
+If the requested time is older than the oldest snapshot, you get the oldest one. If it's in the future, you get the newest.
+
+### `Chronos:GetPositionAt(Player: Player, Time: number): CFrame?`
+
+Convenience wrapper around `GetState` for a single player.
+
+```lua
+local Where = Chronos:GetPositionAt(Player, Chronos:GetTime() - 0.5)
+```
+
+## Guarding client timestamps
+
+A client sends you the time it claims it fired at. That number is not trustworthy — it comes from a machine you don't control.
+
+### `Chronos:IsTimeValid(ClientTime: number): boolean`
+
+Whether the timestamp is plausible: not in the future, and not further back than `MaxChronos`. Use it to reject suspicious timestamps outright.
+
+### `Chronos:GetSafeDelay(ClientTime: number): number`
+
+The delay between the timestamp and now, clamped to `[0, MaxChronos]`.
+
+<Callout title="Reject or clamp?">
+Use `GetSafeDelay` instead of `IsTimeValid` if you'd rather clamp than reject. A player on 400ms ping isn't cheating, they're just lagging — rejecting all their shots makes the game unplayable for them.
+</Callout>
+
+## Validating a shot
+
+### `Chronos:ValidateHit(Shooter, Origin, Direction, ClientTime, Filter?)`
+
+Returns `(Player?, RaycastResult?)`.
+
+Casts a ray against the world as it was when the shooter fired. The shooter is always excluded from the targets.
+
+| Parameter | Type | |
+|---|---|---|
+| `Shooter` | `Player` | Who fired. Never hits themselves. |
+| `Origin` | `Vector3` | Ray start, from the client. |
+| `Direction` | `Vector3` | Ray direction. Normalised internally, then scaled to `MaxDistance`. |
+| `ClientTime` | `number` | The client's `GetServerTimeNow()` at the moment of the shot. |
+| `Filter` | `(Player) -> boolean` | Optional. Return `true` if that player should be hittable. |
+
+`Filter` is where you put your game rules — teams, alive state, spawn protection. Chronos has no opinion on who counts as a target:
+
+```lua
+local Hit = Chronos:ValidateHit(Player, Origin, Direction, ClientTime, function(Target)
+	return Target.Team ~= Player.Team
+end)
+```
+
+Returns the player hit and the raycast result, or `nil, nil` if nothing was hit.
