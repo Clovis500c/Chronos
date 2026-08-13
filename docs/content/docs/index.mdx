@@ -4,33 +4,13 @@ description: Server-side lag compensation for Roblox, in pure Luau.
 icon: Rocket
 ---
 
-Chronos records player positions over time, rewinds to the moment a shot was fired, and validates the hit against that past state.
+The server records player positions over time, rewinds to the moment a shot was fired, and validates the hit against that past state — so a player with high ping who aims correctly actually hits.
 
-Pure Luau. No dependencies, server only.
-
-## The problem
-
-Your screen always lies. What you see of another player is where they were a few frames ago, because the information took time to reach you.
-
-<Tabs items={['On your screen', 'On the server']}>
-  <Tab value="On your screen">
-    You aim perfectly at their head, you fire, it's a clean hit. Everything about the moment says you connected.
-  </Tab>
-  <Tab value="On the server">
-    At that same instant they've already moved a meter away. Your ray goes through empty space and nothing registers.
-  </Tab>
-</Tabs>
-
-That's the "I hit them but nothing happened" feeling in badly networked games. Chronos closes the gap by judging the shot against the world the shooter actually saw.
+Three files, no dependencies, server only.
 
 ## Install
 
-<Steps>
-<Step>
-
-### Get the module
-
-Download `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/releases) and drag it into Studio, or copy `src/` by hand.
+Download `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/releases) and drop it in `ServerStorage`, or copy `src/` by hand.
 
 <Files>
   <Folder name="Chronos" defaultOpen>
@@ -40,19 +20,7 @@ Download `Chronos.rbxm` from [Releases](https://github.com/Clovis500c/Chronos/re
   </Folder>
 </Files>
 
-</Step>
-
-<Step>
-
-### Put it somewhere server-only
-
-`ServerStorage` or `ServerScriptService`. Chronos refuses to run on the client — it warns and returns.
-
-</Step>
-
-<Step>
-
-### Start recording
+The module returns a ready-made instance — no `.new()`.
 
 ```lua
 local Chronos = require(game.ServerStorage.Chronos)
@@ -60,14 +28,7 @@ local Chronos = require(game.ServerStorage.Chronos)
 Chronos:Start()
 ```
 
-That's it. The position log fills up from the next frame onward.
-
-</Step>
-</Steps>
-
 ## Quick start
-
-A complete round trip: the client sends when it fired, the server rewinds and applies damage.
 
 <Tabs items={['Server', 'Client']}>
 <Tab value="Server">
@@ -123,36 +84,10 @@ end)
 </Tabs>
 
 <Callout type="warn" title="Use the right clock">
-The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides. `tick()`, `os.time()` and `os.clock()` all measure local machine time and will produce wrong results.
+The timestamp **must** come from `workspace:GetServerTimeNow()`. It's the only clock that reads the same on both sides — `tick()`, `os.time()` and `os.clock()` measure local machine time and will produce wrong results.
 </Callout>
 
-## Common questions
-
-<Accordions type="single">
-<Accordion title="Do I need to call Chronos.new()?">
-
-No. The module returns a ready-made instance — `require` it and call methods directly. One recorder per server is what you want.
-
-</Accordion>
-
-<Accordion title="What happens if a player has 400ms ping?">
-
-`IsTimeValid` rejects their shot, because 400ms is beyond the default `MaxChronos` of 0.3s. If you'd rather not punish them for a bad connection, use `GetSafeDelay` instead — it clamps the rewind rather than refusing the shot. See the [API reference](/docs/api).
-
-</Accordion>
-
-<Accordion title="Does this work with NPCs?">
-
-Not as-is. Only `Players` are recorded. See [Limitations](/docs/limitations).
-
-</Accordion>
-
-<Accordion title="Can a cheater send a fake timestamp?">
-
-They can send anything, which is why the timestamp is never trusted. `MaxChronos` caps how far back any request can reach, so the worst a spoofed time gets is 0.3 seconds of rewind — the same window an honest laggy player gets.
-
-</Accordion>
-</Accordions>
+`IsTimeValid` rejects anything beyond `MaxChronos` (0.3s by default), which also caps what a spoofed timestamp can reach. If you'd rather clamp than reject laggy players, use `GetSafeDelay` — see the [API reference](/docs/api).
 
 ## Next
 
